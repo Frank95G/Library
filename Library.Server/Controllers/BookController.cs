@@ -2,10 +2,11 @@
 using Biblioteca.Server.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading;
 
 namespace Biblioteca.Server.Controllers
 {
-    //[Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class BookController : ControllerBase
     {
@@ -16,27 +17,96 @@ namespace Biblioteca.Server.Controllers
             _dbcontext = dbcontext;
         }
 
-        [HttpGet]
-        [Route("GetBooksList")]
-        public async Task<IActionResult> GetProductList()
+        [HttpPost]
+        [Route("Insert")]
+        public async Task<IActionResult> Insert(Book obj)
         {
-            return Ok(_dbcontext.Books.ToList());
+            try
+            {
+                BookDataModel book = new BookDataModel();
+                book.Title = obj.Title;
+                book.Author = obj.Author;
+                book.Copies = obj.Copies;
+                //book.Status = 1;
+
+                await _dbcontext.Books.AddAsync(book);
+                await _dbcontext.SaveChangesAsync();
+
+                return Ok(book);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error: " + ex.Message);
+            }
         }
 
-        [HttpPost]
-        [Route("PostProduct")]
-        public async Task<IActionResult> PostBook(Book obj)
+        [HttpDelete]
+        [Route("Remove/{id:int}")]
+        public async Task<IActionResult> Remove(int id)
         {
-            BookDataModel book = new BookDataModel();
-            book.Id = Guid.NewGuid();
-            book.Title = obj.Title;
-            book.Author = obj.Author;
-            book.Status = 1;
+            try
+            {
+                BookDataModel book = _dbcontext.Books.Where(t => t.Id == id).FirstOrDefault();
+                _dbcontext.Books.Remove(book);
+                await _dbcontext.SaveChangesAsync();
+                return StatusCode(StatusCodes.Status200OK, "El libro '" + book.Title + "' fue eliminado correctamente");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error: " + ex.Message);
+            }
 
-            _dbcontext.Books.Add(book);
-            _dbcontext.SaveChanges();
+        }
 
-            return Ok(book);
+        [HttpGet]
+        [Route("Lent/{id:int}")]
+        public async Task<IActionResult> Lent(int id)
+        {
+            try
+            {
+                BookDataModel book = _dbcontext.Books.Where(t => t.Id == id).FirstOrDefault();
+
+                if(book.Copies >= 1) book.Copies = book.Copies - 1;
+                else throw new Exception(message: "El libro " + book.Title + " no tiene copias que puedan ser prestadas");
+
+                await _dbcontext.SaveChangesAsync();
+                return StatusCode(StatusCodes.Status200OK, "El libro '" + book.Title + "' fue prestado");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error: " + ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("Return/{id:int}")]
+        public async Task<IActionResult> Return(int id)
+        {
+            try
+            {
+                BookDataModel book = _dbcontext.Books.Where(t => t.Id == id).FirstOrDefault();
+                book.Copies = book.Copies + 1;
+                await _dbcontext.SaveChangesAsync();
+                return StatusCode(StatusCodes.Status200OK, "El libro '" + book.Title + "' fue devuelto");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error: " + ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("List")]
+        public async Task<IActionResult> GetList()
+        {
+            try
+            {
+                return Ok(_dbcontext.Books.ToList());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error: " + ex.Message);
+            }
         }
     }
 }
