@@ -8,6 +8,7 @@ namespace Biblioteca.Server.Models
 
         public string Author { get; set; }
 
-        public int Status { get; set; }
+        public int Copies { get; set; }
+
     }
 }

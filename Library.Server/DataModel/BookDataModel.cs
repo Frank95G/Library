@@ -1,11 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Biblioteca.Server.Models
 {
     public class BookDataModel
     {
         [Key]
-        public Guid Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -16,6 +18,6 @@ namespace Biblioteca.Server.Models
         public string Author { get; set; }
 
         [Required]
-        public int Status { get; set; }
+        public int Copies { get; set; }
     }
 }
