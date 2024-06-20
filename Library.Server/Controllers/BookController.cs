@@ -27,7 +27,6 @@ namespace Biblioteca.Server.Controllers
                 book.Title = obj.Title;
                 book.Author = obj.Author;
                 book.Copies = obj.Copies;
-                //book.Status = 1;
 
                 await _dbcontext.Books.AddAsync(book);
                 await _dbcontext.SaveChangesAsync();
