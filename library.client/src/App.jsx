@@ -88,7 +88,7 @@ function App() {
         })
 
         if (response.ok) {
-            toast.success("El libro fue devuelto correctamente");
+            toast.success("Se ha devuelto y/o agregado el libro correctamente");
             await mostrarLibros();
         }
         else{
