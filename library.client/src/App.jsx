@@ -1,49 +1,144 @@
 import { useEffect, useState } from 'react';
-import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
-    const [forecasts, setForecasts] = useState();
+    const [libros, setLibros] = useState([]);
+    const [nombreLib, setNombreLib] = useState("");
+    const [autorLib, setAutorLib] = useState("");
+    const [copiasLib, setCopiasLib] = useState("");
+
+    const mostrarLibros = async () => {
+
+        const response = await fetch("api/book/List");
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data)
+            setLibros(data)
+        } else {
+            console.log("status code:" + response.status)
+        }
+    }
 
     useEffect(() => {
-        populateWeatherData();
-    }, []);
+        mostrarLibros();
+    }, [])
 
-    const contents = forecasts === undefined
-        ? <p><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationreact">https://aka.ms/jspsintegrationreact</a> for more details.</em></p>
-        : <table className="table table-striped" aria-labelledby="tableLabel">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Temp. (C)</th>
-                    <th>Temp. (F)</th>
-                    <th>Summary</th>
-                </tr>
-            </thead>
-            <tbody>
-                {forecasts.map(forecast =>
-                    <tr key={forecast.date}>
-                        <td>{forecast.date}</td>
-                        <td>{forecast.temperatureC}</td>
-                        <td>{forecast.temperatureF}</td>
-                        <td>{forecast.summary}</td>
-                    </tr>
-                )}
-            </tbody>
-        </table>;
+
+    const guardarLibro = async (e) => {
+
+        e.preventDefault()
+
+        const response = await fetch("api/book/Insert", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({ Title: nombreLib, Author: autorLib, Copies: copiasLib })
+        })
+
+        if (response.ok) {
+            setNombreLib("");
+            setAutorLib("");
+            setCopiasLib("");
+            await mostrarLibros();
+        }
+    }
+
+    const eliminarLibro = async (id) => {
+
+        const response = await fetch("api/book/Remove/" + id, {
+            method: "DELETE"
+        })
+
+        if (response.ok)
+            await mostrarLibros();
+    }
+
+    const prestarLibro = async (id) => {
+
+        const response = await fetch("api/book/Lent/" + id, {
+            method: "Get"
+        })
+
+        if (response.ok)
+            await mostrarLibros();
+    }
+
+    const devolverLibro = async (id) => {
+
+        const response = await fetch("api/book/Return/" + id, {
+            method: "Get"
+        })
+
+        if (response.ok)
+            await mostrarLibros();
+    }
 
     return (
-        <div>
-            <h1 id="tableLabel">Weather forecast</h1>
-            <p>This component demonstrates fetching data from the server.</p>
-            {contents}
-        </div>
-    );
-    
-    async function populateWeatherData() {
-        const response = await fetch('weatherforecast');
-        const data = await response.json();
-        setForecasts(data);
-    }
-}
 
+        <div className="row justify-content-center">
+            <div className="container bg-dark p-6 vh-100">
+                <h2 className="text-white">Lista de Libros</h2>
+                <div className="row">
+                    <div className="col-sm-12">
+                        <form onSubmit={guardarLibro}>
+
+                            <div className="input-group">
+                                <input type="text" className="form-control"
+                                    placeholder="Nombre del libro"
+                                    value={nombreLib}
+                                    onChange={(e) => setNombreLib(e.target.value)} />
+                                <input type="text" className="form-control"
+                                    placeholder="Autor"
+                                    value={autorLib}
+                                    onChange={(e) => setAutorLib(e.target.value)} />
+                                <input type="text" className="form-control"
+                                    placeholder="No. Copias"
+                                    value={copiasLib}
+                                    onChange={(e) => setCopiasLib(e.target.value)} />
+                                <button className="btn btn-success">Agregar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div className="row mt-4">
+                    <div className="col-sm-12">
+                        <div className="list-group">
+                            {
+                                libros.map(
+                                    (item) => (
+                                        <div key={item.id} className="list-group-item list-group-item-action">
+
+                                            <h5 className="text-primary">{item.title}</h5>
+
+                                            <div className="d-flex justify-content-between">
+                                                <small className="text-muted">{item.author}</small>
+                                                <small className="text-muted">Copias disponibles: {item.copies}</small>
+                                                <button type="button" className="btn btn-sm btn-outline-danger"
+                                                    onClick={() => eliminarLibro(item.id)}>
+                                                    Eliminar
+                                                </button>
+                                                <button type="button" className="btn btn-sm btn-outline-primary"
+                                                    onClick={() => prestarLibro(item.id)}>
+                                                    Prestar
+                                                </button>
+                                                <button type="button" className="btn btn-sm btn-outline-primary"
+                                                    onClick={() => devolverLibro(item.id)}>
+                                                    Devolver/Agregar
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    )
+                                )
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 export default App;
