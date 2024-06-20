@@ -20,14 +20,6 @@ function App() {
         }
     }
 
-    //3.- Metodo convertir fecha
-    //const formatDate = (string) => {
-    //    let options = { year: 'numeric', month: 'long', day: 'numeric' };
-    //    let fecha = new Date(string).toLocaleDateString("es-PE", options);
-    //    let hora = new Date(string).toLocaleTimeString();
-    //    return fecha + " | " + hora
-    //}
-
     useEffect(() => {
         mostrarLibros();
     }, [])
@@ -123,7 +115,7 @@ function App() {
 
                                             <div className="d-flex justify-content-between">
                                                 <small className="text-muted">{item.author}</small>
-                                                <small className="text-muted">Copias dispoibles: {item.copies}</small>
+                                                <small className="text-muted">Copias disponibles: {item.copies}</small>
                                                 <button type="button" className="btn btn-sm btn-outline-danger"
                                                     onClick={() => eliminarLibro(item.id)}>
                                                     Eliminar
